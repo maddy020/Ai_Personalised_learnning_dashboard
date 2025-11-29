@@ -2,11 +2,21 @@
   "name": "backend",
   "version": "1.0.0",
   "main": "index.js",
+  "type": "module",
   "scripts": {
-    "dev": "tsc -b && node dist/index.js"
+    "dev": " npx tsx src/index.ts"
   },
   "keywords": [],
   "author": "",
+  "dependencies": {
+    "@repo/database": "*",
+    "@types/express": "^5.0.5",
+    "express": "^5.1.0"
+  },
   "license": "ISC",
-  "description": ""
+  "description": "",
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "tsx": "^4.20.6"
+  }
 }
