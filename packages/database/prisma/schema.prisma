@@ -14,10 +14,45 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum SkillLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum SessionStatus{
+  RUNNING
+  COMPLETED
+  PAUSED
+}
 
 model User {
-  id    Int     @id @default(autoincrement())
-  email String  @unique
-  name  String
-  password String
+  id               Int        @id @default(autoincrement())
+  email            String     @unique
+  name             String
+  password         String
+  streak           Streak?
+  interestedFields String[]
+  skillLevel       SkillLevel @default(INTERMEDIATE)
+  avatar           String?
+  FocusSession     FocusSession[]
+  createdAt        DateTime   @default(now())
+}
+
+model Streak {
+  id                  Int  @id @default(autoincrement())
+  days                Int  @default(0)
+  lastActivationDate  DateTime @default(now())
+  userId              Int @unique
+  user                User @relation(fields:[userId], references:[id])
+}
+
+model FocusSession{
+  id            Int       @id @default(autoincrement())
+  startTime     DateTime  @default(now())
+  endTime       DateTime? 
+  userId        Int       
+  user          User      @relation(fields:[userId],references:[id])
+  remainingsec  Int?
+  status        SessionStatus    @default(RUNNING)
 }
