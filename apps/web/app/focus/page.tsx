@@ -15,217 +15,214 @@ import {
   Volume2,
   VolumeX,
 } from "lucide-react";
-import type { Session } from "@repo/types";
-
+import type { Session, Modes, ActiveSession } from "@repo/types";
+import { modes } from "../../data";
+import useActiveSession from "../../store/focusStore";
 export default function FocusTimerPage() {
-  const [time, setTime] = useState(25 * 60);
-  const [isRunning, setIsRunning] = useState(false);
-  const [mode, setMode] = useState("focus");
-  const [completedSessions, setCompletedSessions] = useState(0);
-  const [totalFocusTime, setTotalFocusTime] = useState(0);
-  const [soundEnabled, setSoundEnabled] = useState(true);
-  const [currentSession, setCurrentSession] = useState<Session | null>(null);
-  const intervalRef = useRef(null);
-  const token = sessionStorage.getItem("token");
+  const { isRunning, duration, session, updateSessionActivity } =
+    useActiveSession();
+  // const [isRunning, setIsRunning] = useState(false);
+  // const [mode, setMode] = useState<Modes>("focus");
+  // const mode = session?.type || "focus";
+  // const [time, setTime] = useState(modes[mode].duration);
+  // const [completedSessions, setCompletedSessions] = useState(0);
+  // const [totalFocusTime, setTotalFocusTime] = useState(0);
+  // const [soundEnabled, setSoundEnabled] = useState(true);
+  // const [currentSession, setCurrentSession] = useState<Session | null>(null);
+  // const intervalRef = useRef(null);
+  // const token = sessionStorage.getItem("token");
 
-  const modes = {
-    focus: {
-      duration: 25 * 60,
-      label: "Focus Time",
-      color: "from-indigo-500 to-purple-600",
-      icon: Brain,
-    },
-    shortBreak: {
-      duration: 5 * 60,
-      label: "Short Break",
-      color: "from-green-500 to-emerald-600",
-      icon: Coffee,
-    },
-    longBreak: {
-      duration: 15 * 60,
-      label: "Long Break",
-      color: "from-blue-500 to-cyan-600",
-      icon: Target,
-    },
-  };
+  // const currentMode = modes[mode] || modes.focus;
+  // const Icon = currentMode && currentMode.icon;
 
-  const currentMode = modes[mode];
-  const Icon = currentMode.icon;
+  // async function getSessionDetails() {
+  //   try {
+  //     const response = await axios.get<Session>(
+  //       `${process.env.NEXT_PUBLIC_BACKEND_URL}/user/getSession`,
+  //       {
+  //         headers: {
+  //           Authorization: `Bearer ${sessionStorage.getItem("token")}`,
+  //         },
+  //       }
+  //     );
+  //     //@ts-ignore
+  //     if (response?.data?.success) {
+  //       //@ts-ignore
+  //       setCurrentSession(response.data.session);
+  //       //@ts-ignore
 
-  async function getSessionDetails() {
-    try {
-      const response = await axios.get<Session>(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/user/getSession`,
-        {
-          headers: {
-            Authorization: `Bearer ${sessionStorage.getItem("token")}`,
-          },
-        }
-      );
-      //@ts-ignore
-      if (response?.data?.success) {
-        //@ts-ignore
-        setCurrentSession(response.data.session);
-      }
-    } catch (error) {
-      console.log("Error in getting the session", error);
-    }
-  }
+  //       setMode(response.data.session.type);
+  //     }
+  //   } catch (error) {
+  //     console.log("Error in getting the session", error);
+  //   }
+  // }
 
-  useEffect(() => {
-    getSessionDetails();
-  }, []);
+  // useEffect(() => {
+  //   getSessionDetails();
+  // }, []);
 
-  useEffect(() => {
-    if (isRunning && time > 0) {
-      intervalRef.current = setInterval(() => {
-        setTime((prevTime) => {
-          if (prevTime <= 1) {
-            handleTimerComplete();
-            return 0;
-          }
-          return prevTime - 1;
-        });
-      }, 1000);
-    } else {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-    }
+  // useEffect(() => {
+  //   if (isRunning && time > 0) {
+  //     intervalRef.current = setInterval(() => {
+  //       setTime((prevTime) => {
+  //         if (prevTime <= 1) {
+  //           handleTimerComplete();
+  //           return 0;
+  //         }
+  //         return prevTime - 1;
+  //       });
+  //     }, 1000);
+  //   } else {
+  //     if (intervalRef.current) {
+  //       clearInterval(intervalRef.current);
+  //     }
+  //   }
 
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-    };
-  }, [isRunning, time]);
+  //   return () => {
+  //     if (intervalRef.current) {
+  //       clearInterval(intervalRef.current);
+  //     }
+  //   };
+  // }, [isRunning, time]);
 
-  const handleTimerComplete = async () => {
-    try {
-      setIsRunning(false);
-      if (mode === "focus") {
-        setCompletedSessions((prev) => prev + 1);
-        setTotalFocusTime((prev) => prev + 25);
-        if (soundEnabled) {
-          // Play completion sound
-          console.log("Timer complete!");
-        }
-        if (!currentSession || !currentSession.id) return;
-        const response = await axios.patch(
-          `${process.env.NEXT_PUBLIC_BACKEND_URL}/user/completeSession/${currentSession.id}`,
-          {},
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-        console.log("response", response);
-        // Auto switch to break
-        if ((completedSessions + 1) % 4 === 0) {
-          switchMode("longBreak");
-        } else {
-          switchMode("shortBreak");
-        }
-      } else {
-        switchMode("focus");
-      }
-    } catch (error) {
-      console.log("Error in completion of timer", error);
-    }
-  };
+  // const handleTimerComplete = async () => {
+  //   try {
+  //     false;
+  //     if (mode === "focus") {
+  //       setCompletedSessions((prev) => prev + 1);
+  //       setTotalFocusTime((prev) => prev + 25);
+  //       if (soundEnabled) {
+  //         console.log("Timer complete!");
+  //       }
+  //       if (!currentSession || !currentSession.id) return;
+  //       await axios.patch(
+  //         `${process.env.NEXT_PUBLIC_BACKEND_URL}/user/completeSession/${currentSession.id}`,
+  //         {},
+  //         {
+  //           headers: {
+  //             Authorization: `Bearer ${token}`,
+  //           },
+  //         }
+  //       );
+  //       if ((completedSessions + 1) % 4 === 0) {
+  //         setCurrentSession(null);
+  //         updateSessionActivity(false);
+  //         switchMode("longBreak", null);
+  //       } else {
+  //         setCurrentSession(null);
+  //         updateSessionActivity(false);
+  //         switchMode("shortBreak", null);
+  //       }
+  //     } else {
+  //       switchMode("focus", null);
+  //     }
+  //   } catch (error) {
+  //     console.log("Error in completion of timer", error);
+  //   }
+  // };
 
-  const toggleTimer = async () => {
-    try {
-      const requestApi = !currentSession
-        ? `${process.env.NEXT_PUBLIC_BACKEND_URL}/user/startSession`
-        : `${process.env.NEXT_PUBLIC_BACKEND_URL}/user/pauseOrResumeSession/${currentSession?.id}?isResume=${isRunning ? false : true}`;
-      const response = await axios[!currentSession ? "post" : "patch"](
-        requestApi,
-        { endTime: currentSession?.endTime },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      //@ts-ignore
-      !currentSession && setCurrentSession(response.data.session);
-      setIsRunning((prev) => !prev);
-    } catch (error) {
-      console.log("Error in starting the session", error);
-    }
-  };
+  // const toggleTimer = async () => {
+  //   try {
+  //     const requestApi = !currentSession
+  //       ? `${process.env.NEXT_PUBLIC_BACKEND_URL}/user/startSession`
+  //       : `${process.env.NEXT_PUBLIC_BACKEND_URL}/user/pauseOrResumeSession/${currentSession?.id}?isResume=${isRunning ? false : true}`;
+  //     const response = await axios[!currentSession ? "post" : "patch"](
+  //       requestApi,
+  //       { endTime: currentSession?.endTime },
+  //       {
+  //         headers: {
+  //           Authorization: `Bearer ${token}`,
+  //         },
+  //       }
+  //     );
+  //     //@ts-ignore
+  //     !currentSession && setCurrentSession(response.data.session);
+  //     setIsRunning((prev) => !prev);
+  //   } catch (error) {
+  //     console.log("Error in starting the session", error);
+  //   }
+  // };
 
-  const resetTimer = async () => {
-    try {
-      if (!currentSession || !currentSession.id) return;
-      await axios.delete(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/user/resetSession/${currentSession.id}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      setIsRunning(false);
-      setTime(currentMode.duration);
-    } catch (error) {
-      console.log("Error in resetting the timer");
-    }
-  };
+  // const resetTimer = async (timer: number) => {
+  //   try {
+  //     if (!currentSession || !currentSession.id) return;
+  //     setTime(timer);
+  //     setCurrentSession(null);
+  //     setIsRunning(false);
+  //     await axios.delete(
+  //       `${process.env.NEXT_PUBLIC_BACKEND_URL}/user/resetSession/${currentSession.id}`,
+  //       {
+  //         headers: {
+  //           Authorization: `Bearer ${token}`,
+  //         },
+  //       }
+  //     );
+  //   } catch (error) {
+  //     console.log("Error in resetting the timer");
+  //   }
+  // };
 
-  const switchMode = (newMode) => {
-    setIsRunning(false);
-    setMode(newMode);
-    setTime(modes[newMode].duration);
-  };
+  // const switchMode = (newMode: Modes, currSession: any) => {
+  //   if (mode !== newMode && currSession) {
+  //     const response = confirm(
+  //       `Are you sure to end your ${modes[mode].label} session?`
+  //     );
+  //     if (response) {
+  //       resetTimer(modes[newMode].duration);
+  //       setMode(newMode);
+  //     }
+  //   } else {
+  //     setMode(newMode);
+  //     setTime(modes[newMode].duration);
+  //   }
+  // };
 
-  const formatTime = (seconds) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
-  };
+  // const formatTime = (seconds: any) => {
+  //   const mins = Math.floor(seconds / 60);
+  //   const secs = seconds % 60;
+  //   return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+  // };
 
-  const progress = ((currentMode.duration - time) / currentMode.duration) * 100;
+  // const progress = ((currentMode.duration - time) / currentMode.duration) * 100;
 
-  const stats = [
-    {
-      label: "Sessions Today",
-      value: completedSessions,
-      icon: Trophy,
-      color: "from-purple-500 to-indigo-500",
-    },
-    {
-      label: "Focus Time",
-      value: `${totalFocusTime}m`,
-      icon: Clock,
-      color: "from-blue-500 to-cyan-500",
-    },
-    {
-      label: "Current Streak",
-      value: "12 days",
-      icon: TrendingUp,
-      color: "from-orange-500 to-amber-500",
-    },
-  ];
+  // const stats = [
+  //   {
+  //     label: "Sessions Today",
+  //     value: completedSessions,
+  //     icon: Trophy,
+  //     color: "from-purple-500 to-indigo-500",
+  //   },
+  //   {
+  //     label: "Focus Time",
+  //     value: `${totalFocusTime}m`,
+  //     icon: Clock,
+  //     color: "from-blue-500 to-cyan-500",
+  //   },
+  //   {
+  //     label: "Current Streak",
+  //     value: "12 days",
+  //     icon: TrendingUp,
+  //     color: "from-orange-500 to-amber-500",
+  //   },
+  // ];
 
-  const tips = [
-    "Remove distractions from your workspace",
-    "Stay hydrated during focus sessions",
-    "Take short walks during breaks",
-    "Practice deep breathing exercises",
-    "Set clear goals before each session",
-  ];
+  // const tips = [
+  //   "Remove distractions from your workspace",
+  //   "Stay hydrated during focus sessions",
+  //   "Take short walks during breaks",
+  //   "Practice deep breathing exercises",
+  //   "Set clear goals before each session",
+  // ];
 
-  const [currentTip, setCurrentTip] = useState(0);
+  // const [currentTip, setCurrentTip] = useState(0);
 
-  useEffect(() => {
-    const tipInterval = setInterval(() => {
-      setCurrentTip((prev) => (prev + 1) % tips.length);
-    }, 10000);
-    return () => clearInterval(tipInterval);
-  }, []);
+  // useEffect(() => {
+  //   const tipInterval = setInterval(() => {
+  //     setCurrentTip((prev) => (prev + 1) % tips.length);
+  //   }, 10000);
+  //   return () => clearInterval(tipInterval);
+  // }, []);
 
   return (
     <div className="min-h-screen bg-linear-to-br from-indigo-50 via-white to-purple-50">
@@ -285,7 +282,7 @@ export default function FocusTimerPage() {
               {/* Mode Selector */}
               <div className="flex gap-3 mb-8 bg-gray-100 rounded-2xl p-2">
                 <button
-                  onClick={() => switchMode("focus")}
+                  onClick={() => switchMode("focus", currentSession)}
                   className={`flex-1 py-3 rounded-xl font-semibold transition-all ${
                     mode === "focus"
                       ? "bg-linear-to-r from-indigo-500 to-purple-600 text-white shadow-md"
@@ -295,7 +292,7 @@ export default function FocusTimerPage() {
                   Focus
                 </button>
                 <button
-                  onClick={() => switchMode("shortBreak")}
+                  onClick={() => switchMode("shortBreak", currentSession)}
                   className={`flex-1 py-3 rounded-xl font-semibold transition-all ${
                     mode === "shortBreak"
                       ? "bg-linear-to-r from-green-500 to-emerald-600 text-white shadow-md"
@@ -305,7 +302,7 @@ export default function FocusTimerPage() {
                   Short Break
                 </button>
                 <button
-                  onClick={() => switchMode("longBreak")}
+                  onClick={() => switchMode("longBreak", currentSession)}
                   className={`flex-1 py-3 rounded-xl font-semibold transition-all ${
                     mode === "longBreak"
                       ? "bg-linear-to-r from-blue-500 to-cyan-600 text-white shadow-md"
@@ -350,24 +347,15 @@ export default function FocusTimerPage() {
                     strokeDashoffset={`${2 * Math.PI * 45 * (1 - progress / 100)}`}
                     style={{ transition: "stroke-dashoffset 1s linear" }}
                   />
-                  <defs>
-                    <linearlinear
-                      id="linear"
-                      x1="0%"
-                      y1="0%"
-                      x2="100%"
-                      y2="100%"
-                    >
-                      <stop offset="0%" stopColor="#6366f1" />
-                      <stop offset="100%" stopColor="#9333ea" />
-                    </linearlinear>
-                  </defs>
+                  <defs></defs>
                 </svg>
 
                 {/* Timer Display */}
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="text-center">
-                    <div className="text-6xl md:text-7xl font-bold bg-linear-to-r from-indigo-600 to-purple-700 bg-clip-text text-transparent mb-2">
+                    <div
+                      className={`text-6xl md:text-7xl font-bold bg-linear-to-r ${modes[mode].color} bg-clip-text text-transparent mb-2`}
+                    >
                       {formatTime(time)}
                     </div>
                     <div className="text-sm text-gray-500 font-medium">

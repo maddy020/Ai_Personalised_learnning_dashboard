@@ -1,10 +1,5 @@
 import { prisma } from "@repo/database";
-
-enum SessionStatus {
-  RUNNING,
-  COMPLETED,
-  PAUSED,
-}
+import { SessionStatus } from "@repo/types";
 export async function getLastActivationDate(user: any) {
   try {
     const userDetails = await prisma.user.findUnique({
@@ -60,7 +55,7 @@ export async function createSession(user: any) {
     const isActiveSession = await prisma.focusSession.findFirst({
       where: {
         userId: userId,
-        status: SessionStatus[0],
+        status: { in: [SessionStatus[0], SessionStatus[2]] },
       },
     });
     if (
